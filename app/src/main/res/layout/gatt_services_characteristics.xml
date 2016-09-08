@@ -74,10 +74,30 @@
             android:layout_height="wrap_content"
             android:text="@string/no_data"
             android:textSize="18sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_OTA_v2"
+            android:text="@string/new_oad_img_e_v2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btn_OTA_v3"
+            android:text="@string/new_oad_img_e_v3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <ExpandableListView
         android:id="@+id/gatt_services_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
 </LinearLayout>
