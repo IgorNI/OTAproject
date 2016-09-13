@@ -13,6 +13,7 @@ public class Conversion {
     }
 
     public static byte hiUint16(short v) {
+//        return (byte) (v << 8);
         return (byte) (v >> 8);
     }
 

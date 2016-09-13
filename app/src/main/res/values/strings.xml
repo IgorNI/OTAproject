@@ -20,7 +20,7 @@
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
     <string name="app_name">OTAproject</string>
-    <string name="oad_dialog_programming_finished">Firmware upgrade finished, the device should now disconnect, this will be evident by the device restarting and LED start blinking again. \\r\\n\\r\\nIf this should not happen, upgrade failed, you should try to upgrade again.</string>
+    <string name="oad_dialog_programming_finished">固件升级完成</string>
     <string name="new_oad_img_e_v2">new_oad_img_e_v2</string>
     <string name="new_oad_img_e_v3">new_oad_img_e_v3</string>
 </resources>

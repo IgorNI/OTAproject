@@ -1,4 +1,4 @@
-package com.example.nilif.otaproject;
+package com.example.lsd.otaproject;
 
 import org.junit.Test;
 

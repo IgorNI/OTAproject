@@ -1,3 +1,7 @@
+/**
+ * 用于蓝牙的扫描与连接
+ */
+
 package com.example.nilif.otaproject;
 
 import android.app.Activity;
@@ -143,7 +147,7 @@ public class DeviceScanActivity extends ListActivity {
         startActivity(intent);
     }
 
-    private void scanLeDevice(final boolean enable) {
+    public void scanLeDevice(final boolean enable) {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {

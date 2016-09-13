@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 package com.example.nilif.otaproject;
 
@@ -32,15 +17,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
-import org.xml.sax.SAXNotRecognizedException;
-
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -55,7 +35,6 @@ public class BluetoothLeService extends Service {
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
-    private boolean writeFlag = false;
 
     public Timer disconnectionTimer;
 
@@ -131,8 +110,7 @@ public class BluetoothLeService extends Service {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                writeFlag = true;
-//                broadcastUpdate(ACTION_DATA_WRITE, characteristic);
+                broadcastUpdate(ACTION_DATA_WRITE, characteristic);
             }
         }
 
@@ -142,6 +120,7 @@ public class BluetoothLeService extends Service {
             Log.e(TAG, "onCharacteristicChanged:");
             broadcastUpdate(ACTION_DATA_NOTIFY, characteristic);
         }
+
     };
 
     private void broadcastUpdate(final String action) {
@@ -154,9 +133,6 @@ public class BluetoothLeService extends Service {
                                  final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
         intent.putExtra(EXTRA_UUID, characteristic.getUuid().toString());
-        // This is special handling for the Heart Rate Measurement profile.  Data parsing is
-        // carried out as per profile specifications:
-        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
         if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
             int flag = characteristic.getProperties();
             int format = -1;
@@ -172,17 +148,16 @@ public class BluetoothLeService extends Service {
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
         } else if (UUID_OAD_IMAGE_IDENTIFY.equals(characteristic.getUuid()) ||
                 UUID_OAD_IMAGE_BLOCK.equals(characteristic.getUuid())) {
-            Log.e(TAG, "OAD characteristic is changed");
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
         } else {
             // For all other profiles, writes the data formatted in HEX.
-//            final byte[] data = characteristic.getValue();
-//            if (data != null && data.length > 0) {
-//                final StringBuilder stringBuilder = new StringBuilder(data.length);
-//                for(byte byteChar : data)
-//                    stringBuilder.append(String.format("%02X ", byteChar));
-//                intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
-//            }
+            final byte[] data = characteristic.getValue();
+            if (data != null && data.length > 0) {
+                final StringBuilder stringBuilder = new StringBuilder(data.length);
+                for (byte byteChar : data)
+                    stringBuilder.append(String.format("%02X ", byteChar));
+                intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
+            }
         }
         sendBroadcast(intent);
     }
@@ -195,37 +170,6 @@ public class BluetoothLeService extends Service {
         return mBluetoothGatt.getService(UUID.fromString(SampleGattAttributes.OAD_SERVICE));
     }
 
-    public BluetoothGattService getConControlService() {
-        if (mBluetoothGatt == null) {
-            Log.e(TAG, "BluetoothGatt is not initialized");
-            return null;
-        }
-        return mBluetoothGatt.getService(UUID.fromString(SampleGattAttributes.CONNECT_CONTROL_SERVICE));
-    }
-
-    public BluetoothGattCharacteristic getFirmWorkVersion() {
-        if (mBluetoothGatt == null) {
-            Log.e(TAG, "BluetoothGatt is not initialized");
-            return null;
-        }
-        return mBluetoothGatt.getService(UUID.fromString(SampleGattAttributes.dISService_UUID))
-                .getCharacteristic(UUID.fromString(SampleGattAttributes.dISFirmwareREV_UUID));
-    }
-
-    public void timedDisconnect() {
-        disconnectTimerTask disconnectionTimerTask;
-        this.disconnectionTimer = new Timer();
-        disconnectionTimerTask = new disconnectTimerTask(this);
-        this.disconnectionTimer.schedule(disconnectionTimerTask, 20000);
-    }
-
-    public void abortTimedDisconnect() {
-//        if (this.disconnectionTimer != null) {
-//            this.disconnectionTimer.cancel();
-//        }
-        return;
-    }
-
     public void writeCharacteristic(BluetoothGattCharacteristic mCharacteristic) {
         if (mBluetoothGatt == null) {
             Log.e(TAG, "BluetoothGatt is not initialized");
@@ -234,133 +178,16 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt.writeCharacteristic(mCharacteristic);
     }
 
-//    public boolean writeCharacteristicNonBlock(BluetoothGattCharacteristic mCharacteristic) {
-//        writeFlag = false;
-//        if (mBluetoothGatt == null) {
-//            Log.e(TAG, "BluetoothGatt is not initialized");
-//            return false;
-//        }
-//        writeCharacteristic(mCharacteristic);
-//        Log.e(TAG, "writeCharacteristicNonBlock: ");
-//        return true;
-//    }
-
-    public boolean writeCharacteristicNonBlock(BluetoothGattCharacteristic characteristic) {
-        bleRequest req = new bleRequest();
-        req.status = bleRequestStatus.not_queued;
-        req.characteristic = characteristic;
-        req.operation = bleRequestOperation.wr;
-        addRequestToQueue(req);
-        return true;
-    }
-
-    private final Lock lock = new ReentrantLock();
-    private volatile LinkedList<bleRequest> procQueue;
-    private volatile LinkedList<bleRequest> nonBlockQueue;
-    private volatile bleRequest curBleRequest = null;
-    public final static int GATT_TIMEOUT = 150;
-
-    public boolean addRequestToQueue(bleRequest req) {
-        lock.lock();
-        if (procQueue.peekLast() != null) {
-            req.id = procQueue.peek().id++;
-        } else {
-            req.id = 0;
-            procQueue.add(req);
-        }
-        lock.unlock();
-        return true;
-    }
-
-    public class bleRequest {
-        public int id;
-        public BluetoothGattCharacteristic characteristic;
-        public bleRequestOperation operation;
-        public volatile bleRequestStatus status;
-        public int timeout;
-        public int curTimeout;
-        public boolean notifyenable;
-    }
-
-    public enum bleRequestStatus {
-        not_queued,
-        queued,
-        processing,
-        timeout,
-        done,
-        no_such_request,
-        failed,
-    }
-
-    public enum bleRequestOperation {
-        wrBlocking,
-        wr,
-        rdBlocking,
-        rd,
-        nsBlocking,
-    }
-
-    private void executeQueue() {
-        // Everything here is done on the queue
-        lock.lock();
-        if (curBleRequest != null) {
-            Log.d(TAG, "executeQueue, curBleRequest running");
-            try {
-                curBleRequest.curTimeout++;
-                if (curBleRequest.curTimeout > GATT_TIMEOUT) {
-                    curBleRequest.status = bleRequestStatus.timeout;
-                    curBleRequest = null;
-                }
-                Thread.sleep(10, 0);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            lock.unlock();
-            return;
-        }
-        if (procQueue == null) {
-            lock.unlock();
-            return;
-        }
-        if (procQueue.size() == 0) {
-            lock.unlock();
-            return;
-        }
-        bleRequest procReq = procQueue.removeFirst();
-
-        switch (procReq.operation) {
-            case wr:
-                //Write, do non blocking write (Ex: OAD)
-                nonBlockQueue.add(procReq);
-                sendNonBlockingWriteRequest(procReq);
-                break;
-        }
-        lock.unlock();
-    }
-
-    public int sendNonBlockingWriteRequest(bleRequest request) {
-        request.status = bleRequestStatus.processing;
+    public boolean writeCharacteristicNonBlock(BluetoothGattCharacteristic mCharacteristic) {
         if (mBluetoothGatt == null) {
-            request.status = bleRequestStatus.failed;
-            return -2;
+            Log.e(TAG, "BluetoothGatt is not initialized");
+            return false;
         }
-        mBluetoothGatt.writeCharacteristic(request.characteristic);
-        return 0;
+        writeCharacteristic(mCharacteristic);
+        Log.e(TAG, "writeCharacteristicNonBlock: ");
+        return true;
     }
 
-
-    class disconnectTimerTask extends TimerTask {
-        BluetoothLeService param;
-
-        public disconnectTimerTask(final BluetoothLeService param) {
-            this.param = param;
-        }
-
-        @Override
-        public void run() {
-            this.param.disconnect();
-        }
-    }
     public class LocalBinder extends Binder {
         BluetoothLeService getService() {
             return BluetoothLeService.this;
@@ -504,15 +331,21 @@ public class BluetoothLeService extends Service {
             return;
         }
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
-        // This is specific to Heart Rate Measurement.
-//        if (UUID_OAD_IMAGE_IDENTIFY.equals(characteristic.getUuid()) ||
-//                UUID_OAD_IMAGE_BLOCK.equals(characteristic.getUuid())) {
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                    SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG);
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            mBluetoothGatt.writeDescriptor(descriptor);
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG);
+        if (UUID_OAD_SERVICE.equals(characteristic.getService().getUuid())) {
+            if (enabled) {
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                Log.e(TAG, "setCharacteristicNotification:");
+                mBluetoothGatt.writeDescriptor(descriptor);
+            } else {
+                descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+            }
 
-//        }
+        }
+
+
+
     }
 
     /**
@@ -525,5 +358,9 @@ public class BluetoothLeService extends Service {
         if (mBluetoothGatt == null) return null;
 
         return mBluetoothGatt.getServices();
+    }
+
+    public BluetoothGatt getmBluetoothGatt() {
+        return mBluetoothGatt;
     }
 }
