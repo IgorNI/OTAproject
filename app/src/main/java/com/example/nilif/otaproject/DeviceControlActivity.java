@@ -41,7 +41,7 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
     private TextView mDataField;
     private String mDeviceName;
     private String mDeviceAddress;
-    private com.example.nilif.otasdk.UpdateOperator updateOperator;
+    private UpdateOperator updateOperator;
     private ExpandableListView mGattServicesList;
     private BluetoothLeService mBluetoothLeService;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
