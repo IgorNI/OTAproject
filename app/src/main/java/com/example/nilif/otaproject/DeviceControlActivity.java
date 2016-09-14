@@ -23,7 +23,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import com.example.nilif.otasdk.UpdateOperator;
 /**
  * @author nilif
@@ -118,8 +117,6 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
                 }
                 if (uuidStr.equals(mCharBlock.getUuid().toString())) {
                     Log.e(TAG, "Block notify");
-                    Log.e(TAG, "onReceiveData " + Conversion.BytetohexString(value, value.length));
-
                     String blockIndex = String.format("%02x%02x", value[1], value[0]);
 
                     Log.e("FwUpdateActivity_CC26xx :", "Received block req: " + blockIndex);
