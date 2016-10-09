@@ -20,10 +20,13 @@ import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.example.nilif.otasdk.UpdateOperator;
+//import com.example.nilif.otasdk.UpdateOperator;
+import com.example.nilif.otaproject.ota.UpdateOperator;
 /**
  * @author nilif
  * @date 2016/9/1 03:16
@@ -110,13 +113,11 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
                 Log.e(TAG, "characteristic read");
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             } else if (BluetoothLeService.ACTION_DATA_NOTIFY.equals(action)) {
-                Log.e(TAG, "Service notify");
                 byte[] value = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
                 String uuidStr = intent.getStringExtra(BluetoothLeService.EXTRA_UUID);
                 if (uuidStr.equals(mCharIdentify.getUuid().toString())) {
                 }
                 if (uuidStr.equals(mCharBlock.getUuid().toString())) {
-                    Log.e(TAG, "Block notify");
                     String blockIndex = String.format("%02x%02x", value[1], value[0]);
 
                     Log.e("FwUpdateActivity_CC26xx :", "Received block req: " + blockIndex);
@@ -184,9 +185,9 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
         mConnectionState = (TextView) findViewById(R.id.connection_state);
         mDataField = (TextView) findViewById(R.id.data_value);
         Button btn_v2 = (Button) findViewById(R.id.btn_OTA_v2);
-        Button btn_v3 = (Button) findViewById(R.id.btn_OTA_v3);
+//        Button btn_v3 = (Button) findViewById(R.id.btn_OTA_v3);
         btn_v2.setOnClickListener(this);
-        btn_v3.setOnClickListener(this);
+//        btn_v3.setOnClickListener(this);
         getActionBar().setTitle(mDeviceName);
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -361,14 +362,10 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
         switch (id) {
             case R.id.btn_OTA_v2:
                 init();
-                updateOperator = new UpdateOperator(this, FW_FILE_V2, true, mBluetoothLeService.getmBluetoothGatt(),
-                        mCharIdentify, mCharBlock);
-                updateOperator.startUpdate();
-                break;
-            case R.id.btn_OTA_v3:
-                init();
-                updateOperator = new UpdateOperator(this, FW_FILE_V3, true, mBluetoothLeService.getmBluetoothGatt(),
-                        mCharIdentify, mCharBlock);
+                long time = System.currentTimeMillis();
+                Toast.makeText(this, "开始升级", Toast.LENGTH_SHORT).show();
+                updateOperator = new UpdateOperator(this, true, mBluetoothLeService.getmBluetoothGatt(),
+                        mCharIdentify, mCharBlock, time);
                 updateOperator.startUpdate();
                 break;
         }

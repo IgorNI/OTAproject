@@ -21,6 +21,6 @@
     <string name="menu_stop">Stop</string>
     <string name="app_name">OTAproject</string>
     <string name="oad_dialog_programming_finished">固件升级完成</string>
-    <string name="new_oad_img_e_v2">new_oad_img_e_v2</string>
+    <string name="start_ota">开始升级</string>
     <string name="new_oad_img_e_v3">new_oad_img_e_v3</string>
 </resources>

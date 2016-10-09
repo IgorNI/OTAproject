@@ -18,6 +18,7 @@ public class SampleGattAttributes {
     public static final String OAD_IMAGE_BLOCK = "f000ffc2-0451-4000-b000-000000000000";
     public static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
+
     static {
         // Sample Services.
         attributes.put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service");

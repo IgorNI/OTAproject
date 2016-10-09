@@ -1,4 +1,4 @@
-package com.example.nilif.otaproject;
+package com.example.nilif.otaproject.ota;
 
 import java.util.Formatter;
 

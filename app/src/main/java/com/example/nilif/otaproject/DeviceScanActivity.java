@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +25,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 /**
@@ -39,6 +42,7 @@ public class DeviceScanActivity extends ListActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
+    private final String TAG = "scanActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -240,6 +244,7 @@ public class DeviceScanActivity extends ListActivity {
 
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+//                    parseAdvData(scanRecord);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -249,6 +254,29 @@ public class DeviceScanActivity extends ListActivity {
                     });
                 }
             };
+
+    private void parseAdvData(byte[] scanRecord) {
+        ByteBuffer buffer = ByteBuffer.wrap(scanRecord).order(ByteOrder.LITTLE_ENDIAN);
+        while (buffer.remaining() > 2) {
+            byte length = buffer.get();
+            if (length == 0)
+                break;
+
+            byte type = buffer.get();
+            length -= 1;
+            switch (type) {
+                case 0x01:
+                    Log.e(TAG, "Type is " + "0x01");
+                    break;
+                case 0x02:
+                    Log.e(TAG, "Type is " + "0x02");
+                    break;
+                case (byte) 0xff:
+                    Log.e(TAG, "parseAdvData:");
+                    break;
+            }
+        }
+    }
 
     static class ViewHolder {
         TextView deviceName;

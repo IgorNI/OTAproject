@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.UUID;
 
+import javax.security.auth.login.LoginException;
+
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -109,6 +111,7 @@ public class BluetoothLeService extends Service {
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            Log.e(TAG, "onCharacteristicWrite: " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_WRITE, characteristic);
             }
@@ -117,7 +120,6 @@ public class BluetoothLeService extends Service {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
-            Log.e(TAG, "onCharacteristicChanged:");
             broadcastUpdate(ACTION_DATA_NOTIFY, characteristic);
         }
 
